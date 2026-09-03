@@ -39,6 +39,12 @@ jobs:
             https://gitlab.com/buildroot.org/buildroot.git \
             buildroot
 
+      - name: Clone SV6256P driver
+        run: |
+          git clone --depth 1 \
+            https://github.com/cdhigh/armbian_sv6256p.git \
+            package/ssv6x5x/src
+
       - name: Apply project configuration
         run: |
           cp buildroot.config buildroot/.config
