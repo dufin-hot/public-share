@@ -43,11 +43,15 @@ jobs:
         run: |
           cp buildroot.config buildroot/.config
 
+      - name: Configure Buildroot external tree
+        working-directory: buildroot
+        run: |
+          make BR2_EXTERNAL="$GITHUB_WORKSPACE" olddefconfig
+
       - name: Build
         working-directory: buildroot
         run: |
-          make olddefconfig
-          make -j"$(nproc)"
+          make BR2_EXTERNAL="$GITHUB_WORKSPACE" -j"$(nproc)"
 
       - name: Show generated files
         run: |

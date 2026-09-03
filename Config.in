@@ -1,0 +1,1 @@
+source "$BR2_EXTERNAL_RK322X_SERVER_PATH/package/ssv6x5x/Config.in"
