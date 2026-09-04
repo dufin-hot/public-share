@@ -33,7 +33,6 @@ jobs:
             util-linux \
             dosfstools \
             e2fsprogs \
-            sfdisk
 
       - name: Clone Buildroot
         run: |
