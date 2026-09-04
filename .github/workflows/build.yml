@@ -25,13 +25,15 @@ jobs:
             rsync \
             unzip \
             wget \
-            python3 \
-            python3-pip \
+            xz-utils \
             libncurses-dev \
             libssl-dev \
             libelf-dev \
             device-tree-compiler \
-            xz-utils
+            util-linux \
+            dosfstools \
+            e2fsprogs \
+            sfdisk
 
       - name: Clone Buildroot
         run: |
@@ -59,14 +61,33 @@ jobs:
         run: |
           make BR2_EXTERNAL="$GITHUB_WORKSPACE" -j"$(nproc)"
 
-      - name: Show generated files
+      - name: Download Multitool
         run: |
-          echo "=== output/images ==="
-          ls -lah buildroot/output/images
+          wget -O multitool-rk322x.xz \
+            https://github.com/dufin-hot/public-share/releases/download/RK3228A/multitool-rk322x.xz
 
-      - name: Upload Buildroot artifacts
+          xz -d multitool-rk322x.xz
+
+      - name: Build SD image
+        run: |
+          chmod +x scripts/make-sd-image.sh
+
+          sudo scripts/make-sd-image.sh \
+            multitool-rk322x \
+            buildroot/output/images/rootfs.tar \
+            buildroot/output/images/zImage \
+            rk322x-server-sd.img
+
+      - name: Inspect image
+        run: |
+          ls -lh rk322x-server-sd.img
+          sudo fdisk -l rk322x-server-sd.img
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: rk322x-build
+          name: rk322x-server-sd
           path: |
-            buildroot/output/images/*
+            rk322x-server-sd.img
+            buildroot/output/images/zImage
+            buildroot/output/images/rootfs.tar
