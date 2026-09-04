@@ -26,7 +26,8 @@ dd if="$MULTITOOL_IMG" \
    of="$OUTPUT" \
    bs=512 \
    count=32768 \
-   conv=notrunc,status=none
+   conv=notrunc \
+   status=none
 
 echo "=== Criando tabela de partições ==="
 
