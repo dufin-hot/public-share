@@ -32,7 +32,7 @@ jobs:
             device-tree-compiler \
             util-linux \
             dosfstools \
-            e2fsprogs \
+            e2fsprogs
 
       - name: Clone Buildroot
         run: |
@@ -46,19 +46,83 @@ jobs:
             https://github.com/cdhigh/armbian_sv6256p.git \
             package/ssv6x5x/src
 
+      - name: Generate Wi-Fi configuration
+        env:
+          WIFI_SSID: ${{ secrets.WIFI_SSID }}
+          WIFI_PASSWORD: ${{ secrets.WIFI_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          ssid = os.environ["WIFI_SSID"]
+          password = os.environ["WIFI_PASSWORD"]
+
+          def escape_wpa(value):
+              return value.replace("\\", "\\\\").replace('"', '\\"')
+
+          ssid = escape_wpa(ssid)
+          password = escape_wpa(password)
+
+          text = f'''ctrl_interface=/var/run/wpa_supplicant
+          update_config=0
+          country=BR
+
+          network={{
+              ssid="{ssid}"
+              psk="{password}"
+              key_mgmt=WPA-PSK
+          }}
+          '''
+
+          path = Path(
+              "board/rk322x-server/rootfs-overlay/etc/wpa_supplicant.conf"
+          )
+          path.write_text(text, encoding="utf-8")
+          path.chmod(0o600)
+          PY
+
       - name: Apply project configuration
         run: |
           cp buildroot.config buildroot/.config
 
-      - name: Configure Buildroot external tree
+      - name: Configure Buildroot
         working-directory: buildroot
         run: |
-          make BR2_EXTERNAL="$GITHUB_WORKSPACE" olddefconfig
+          make \
+            BR2_EXTERNAL="$GITHUB_WORKSPACE" \
+            BR2_ROOTFS_OVERLAY="$GITHUB_WORKSPACE/board/rk322x-server/rootfs-overlay" \
+            BR2_SYSTEM_DHCP="eth0" \
+            olddefconfig
 
       - name: Build
         working-directory: buildroot
         run: |
-          make BR2_EXTERNAL="$GITHUB_WORKSPACE" -j"$(nproc)"
+          make \
+            BR2_EXTERNAL="$GITHUB_WORKSPACE" \
+            BR2_ROOTFS_OVERLAY="$GITHUB_WORKSPACE/board/rk322x-server/rootfs-overlay" \
+            BR2_SYSTEM_DHCP="eth0" \
+            -j"$(nproc)"
+
+      - name: Verify kernel and SV6256P
+        run: |
+          echo "=== Kernel ==="
+          ls -lh buildroot/output/images/zImage
+
+          echo "=== SV6256P module ==="
+          find buildroot/output/target/lib/modules \
+            -name 'ssv6x5x.ko' -ls
+
+          echo "=== Firmware ==="
+          ls -lh \
+            buildroot/output/target/lib/firmware/ssv6x5x-sw.bin \
+            buildroot/output/target/lib/firmware/ssv6x5x-wifi.cfg
+
+          echo "=== Network configuration ==="
+          cat buildroot/output/target/etc/network/interfaces
+
+          echo "=== Modules ==="
+          cat buildroot/output/target/etc/modules
 
       - name: Download Multitool
         run: |
