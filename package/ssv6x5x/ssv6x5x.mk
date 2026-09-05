@@ -5,9 +5,12 @@ SSV6X5X_SITE_METHOD = local
 SSV6X5X_MODULE_SUBDIRS = .
 
 define SSV6X5X_INSTALL_FIRMWARE
-	$(INSTALL) -D -m 0644 $(@D)/ssv6x5x-sw.bin \
+	$(INSTALL) -D -m 0644 \
+		$(BR2_EXTERNAL_RK322X_SERVER_PATH)/package/ssv6x5x/firmware/ssv6x5x-sw.bin \
 		$(TARGET_DIR)/lib/firmware/ssv6x5x-sw.bin
-	$(INSTALL) -D -m 0644 $(@D)/ssv6x5x-wifi.cfg \
+
+	$(INSTALL) -D -m 0644 \
+		$(BR2_EXTERNAL_RK322X_SERVER_PATH)/package/ssv6x5x/firmware/ssv6x5x-wifi.cfg \
 		$(TARGET_DIR)/lib/firmware/ssv6x5x-wifi.cfg
 endef
 
