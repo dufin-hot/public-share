@@ -122,7 +122,7 @@ jobs:
           cat buildroot/output/target/etc/network/interfaces
 
           echo "=== Modules ==="
-          cat buildroot/output/target/etc/modules
+          cat buildroot/output/target/etc/modules-load.d/ssv6x5x.conf
 
       - name: Download Multitool
         run: |
